@@ -22,7 +22,7 @@
             <md-radio-button value="false"  class="md-primary">Not Done</md-radio-button>
         </md-radio-group>
 
-        <one-case cases="cases" del-case="delCase" rb="rb">sdfsdfsdf</one-case>
+        <one-case cases="cases" del-case="delCase" update-state="updateState" rb="rb" >tesasdasdt</one-case>
         
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.11/angular.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
@@ -35,13 +35,21 @@
         <script>
             var myApp = angular.module("myApp", ['ngMaterial']);
             myApp.run(function($rootScope) {
-                $rootScope.cases = [];
-                $rootScope.countId = 0;                
+	$rootScope.cases=[];
+	$rootScope.countId = 0; 
+	$rootScope.name = null;
+	var returnStorage=JSON.parse(localStorage.getItem("ToDo"));
+	if(returnStorage!=null){
+	    $rootScope.cases = returnStorage.cases;
+	    $rootScope.countId = returnStorage.id;                
+	}
                 $rootScope.addCase = function (text) {
                     if(text) 
                     {
                         $rootScope.cases.push(new createCase($rootScope.countId,text,false));
                         ++$rootScope.countId;
+	        $rootScope.updateStorage();
+	        $rootScope.name = null;
                     }
                 };
                 $rootScope.delCase = function (id) {
@@ -49,8 +57,25 @@
                     if(index != null) 
                     {
                         $rootScope.cases.splice(index,1);
+	        $rootScope.updateStorage();
                     }
                 };
+                $rootScope.updateState = function (id) {
+                    var index=findIndexforId($rootScope.cases,id);
+                    if(index != null &&  $rootScope.cases[index].done) 
+                    {
+	        var date= new Date();
+	        var month=date.getMonth()+1;
+	        if(month<10){
+	            month='0'+month;
+	        }
+                        $rootScope.cases[index].time=date.getDate()+'.'+month+'.'+date.getFullYear();
+                    }
+                    $rootScope.updateStorage();
+                };
+	$rootScope.updateStorage =function  () {
+                    localStorage.setItem("ToDo", angular.toJson({id: $rootScope.countId, cases:$rootScope.cases}));
+	};
             });
 
             myApp.directive('oneCase', function(){
@@ -58,15 +83,16 @@
                     replace: true,
                     template:  '<div>\
                                     <p ng-repeat="case in cases | filter:{done:rb}">\
-                                        <md-checkbox class="md-primary" ng-model="case.done"></md-checkbox>\
-                                        <s ng-show="case.done">{{case.text}}</s>\
-                                        <span ng-hide="case.done">{{case.text}} {{case.time}}</span>\
+                                        <md-checkbox class="md-primary" ng-model="case.done" aria-label="select" ng-change="updateState(case.id)"></md-checkbox>\
+		        <span ng-show="case.done"><s>{{case.text}}</s> {{case.time}}</span>\
+                                        <span ng-hide="case.done">{{case.text}}</span>\
                                         <md-button class="md-fab md-mini md-primary" ng-click="delCase(case.id)">X</md-button>\
                                     </p>\
                                 </div>' ,
                     scope: {
                         cases: '=',
                         delCase: '=' ,
+	        updateState: '=' ,
                         rb: '='
                     },
                     restrict: 'E'
@@ -77,6 +103,7 @@
                 this.id = id;
                 this.text = text;
                 this.done = done;
+	this.time = '16.07.2018';
             };
 
             function findIndexforId(cases,id) {
@@ -88,7 +115,6 @@
                 }
                 return null;
             };
-            
         </script>
     </body>
 </html>
