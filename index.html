@@ -1,0 +1,94 @@
+<!doctype html>
+<html ng-app="myApp">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Angular Material style sheet -->
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+    </head>
+    <body align="middle">
+        <h1 >ToDo</h1>  
+        
+        <section layout="row"  layout-align="center center " layout-wrap>
+            <md-input-container md-no-float class="md-block">
+                <input ng-model="name" placeholder="I need...">
+            </md-input-container>   
+            <md-button class="md-raised"  ng-click="addCase(name)">Add</md-button>
+        </section>
+
+        <md-radio-group ng-model="rb" layout="row"  layout-align="center center">
+            <md-radio-button value="!undefined" class="md-primary">All</md-radio-button>
+            <md-radio-button value="true"  class="md-primary"> Done </md-radio-button>
+            <md-radio-button value="false"  class="md-primary">Not Done</md-radio-button>
+        </md-radio-group>
+
+        <one-case cases="cases" del-case="delCase" rb="rb">sdfsdfsdf</one-case>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.11/angular.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/lodash/4.17.2/lodash.js"></script>
+        
+  <!-- Angular Material Library -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+        <script>
+            var myApp = angular.module("myApp", ['ngMaterial']);
+            myApp.run(function($rootScope) {
+                $rootScope.cases = [];
+                $rootScope.countId = 0;                
+                $rootScope.addCase = function (text) {
+                    if(text) 
+                    {
+                        $rootScope.cases.push(new createCase($rootScope.countId,text,false));
+                        ++$rootScope.countId;
+                    }
+                };
+                $rootScope.delCase = function (id) {
+                    var index=findIndexforId($rootScope.cases,id);
+                    if(index != null) 
+                    {
+                        $rootScope.cases.splice(index,1);
+                    }
+                };
+            });
+
+            myApp.directive('oneCase', function(){
+                return {
+                    replace: true,
+                    template:  '<div>\
+                                    <p ng-repeat="case in cases | filter:{done:rb}">\
+                                        <md-checkbox class="md-primary" ng-model="case.done"></md-checkbox>\
+                                        <s ng-show="case.done">{{case.text}}</s>\
+                                        <span ng-hide="case.done">{{case.text}} {{case.time}}</span>\
+                                        <md-button class="md-fab md-mini md-primary" ng-click="delCase(case.id)">X</md-button>\
+                                    </p>\
+                                </div>' ,
+                    scope: {
+                        cases: '=',
+                        delCase: '=' ,
+                        rb: '='
+                    },
+                    restrict: 'E'
+                }
+            });
+
+            function createCase(id, text,done) {
+                this.id = id;
+                this.text = text;
+                this.done = done;
+            };
+
+            function findIndexforId(cases,id) {
+                for(var i=0;i<cases.length;++i){
+                    if(cases[i].id==id)
+                    {
+                        return i;
+                    }
+                }
+                return null;
+            };
+            
+        </script>
+    </body>
+</html>
